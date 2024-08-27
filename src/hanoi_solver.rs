@@ -17,7 +17,7 @@ impl Hanoi {
         }
     }
 
-    fn _move_disk(&mut self, from: usize, to: usize) -> Result<(), String> {
+    fn move_disk(&mut self, from: usize, to: usize) -> Result<(), String> {
         if let Some(disk) = self.rods[from].pop() {
             if let Some(&top_disk) = self.rods[to].last() {
                 if disk > top_disk {
@@ -30,6 +30,39 @@ impl Hanoi {
         } else {
             Err(format!("No disk to move from tower {from}"))
         }
+    }
+
+    fn solve_recursive(
+        &mut self,
+        number_of_disks: u32,
+        source_rod_index: usize,
+        destination_rod_index: usize,
+        auxiliary_rod_index: usize,
+    ) -> Result<(), String> {
+        if number_of_disks == 0 {
+            return Ok(());
+        }
+        self.solve_recursive(
+            number_of_disks - 1,
+            source_rod_index,
+            auxiliary_rod_index,
+            destination_rod_index,
+        )?;
+        self.move_disk(source_rod_index, destination_rod_index)?;
+        self.solve_recursive(
+            number_of_disks - 1,
+            auxiliary_rod_index,
+            destination_rod_index,
+            source_rod_index,
+        )?;
+        Ok(())
+    }
+}
+
+impl HanoiSolver for Hanoi {
+    fn solve(&mut self) -> Result<(), String> {
+        let disks = self.rods[0].len() as u32;
+        self.solve_recursive(disks, 0, 2, 1)
     }
 }
 
@@ -67,12 +100,12 @@ mod tests {
     }
 
     #[test]
-    fn should_move_disk_from_rod_1_to_rod_2() {
+    fn shouldmove_disk_from_rod_1_to_rod_2() {
         // GIVEN a hanoi tower with 3 disks
         let mut hanoi = Hanoi::new(3);
 
         // WHEN we move a disk from rod 1 to rod 2
-        let operation_result = hanoi._move_disk(0, 1);
+        let operation_result = hanoi.move_disk(0, 1);
 
         // THEN the hanoi tower should have the following model
         assert!(operation_result.is_ok());
@@ -87,7 +120,7 @@ mod tests {
         let mut hanoi = Hanoi::new(3);
 
         // WHEN we move a disk from rod 2 to rod 1
-        let operation_result = hanoi._move_disk(1, 0);
+        let operation_result = hanoi.move_disk(1, 0);
 
         // THEN the hanoi tower should have the following model
         assert!(operation_result.is_err());
@@ -102,7 +135,7 @@ mod tests {
         let mut hanoi = Hanoi::new(3);
 
         // WHEN we move a disk from rod 1 to rod 2
-        let operation_result = hanoi._move_disk(0, 1);
+        let operation_result = hanoi.move_disk(0, 1);
 
         // THEN the hanoi tower should have the following model
         assert!(operation_result.is_ok());
@@ -111,12 +144,44 @@ mod tests {
         assert_eq!(&vec![] as &Vec<u32>, hanoi.rods.last().unwrap());
 
         // WHEN we move a disk from rod 1 to rod 2
-        let operation_result = hanoi._move_disk(0, 1);
+        let operation_result = hanoi.move_disk(0, 1);
 
         // THEN the hanoi tower should have the following model
         assert!(operation_result.is_err());
         assert_eq!(&vec![2, 1], hanoi.rods.first().unwrap());
         assert_eq!(&vec![0], hanoi.rods.get(1).unwrap());
         assert_eq!(&vec![] as &Vec<u32>, hanoi.rods.last().unwrap());
+    }
+
+    #[test]
+    fn should_solve_the_hanoi_towers_with_three_disks() {
+        // GIVEN a hanoi tower with 3 disks
+        let disks_amount = 3;
+        let mut hanoi = Hanoi::new(disks_amount);
+
+        // WHEN we solve the hanoi tower
+        let operation_result = hanoi.solve_recursive(disks_amount, 0, 2, 1);
+
+        // THEN the hanoi tower should have the following model
+        assert!(operation_result.is_ok());
+        assert_eq!(&vec![] as &Vec<u32>, hanoi.rods.first().unwrap());
+        assert_eq!(&vec![] as &Vec<u32>, hanoi.rods.get(1).unwrap());
+        assert_eq!(&vec![2, 1, 0], hanoi.rods.last().unwrap());
+    }
+
+    #[test]
+    fn should_solve_the_hanoi_towers_with_five_disks() {
+        // GIVEN a hanoi tower with 3 disks
+        let disks_amount = 5;
+        let mut hanoi = Hanoi::new(disks_amount);
+
+        // WHEN we solve the hanoi tower
+        let operation_result = hanoi.solve_recursive(disks_amount, 0, 2, 1);
+
+        // THEN the hanoi tower should have the following model
+        assert!(operation_result.is_ok());
+        assert_eq!(&vec![] as &Vec<u32>, hanoi.rods.first().unwrap());
+        assert_eq!(&vec![] as &Vec<u32>, hanoi.rods.get(1).unwrap());
+        assert_eq!(&vec![4, 3, 2, 1, 0], hanoi.rods.last().unwrap());
     }
 }
