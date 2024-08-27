@@ -1,5 +1,9 @@
+use std::fmt;
+
+#[derive(Debug)]
 pub struct Hanoi {
-    pub rods: [Vec<u32>; 3],
+    rods: [Vec<u32>; 3],
+    disks_amount: u32,
 }
 
 pub trait HanoiSolver {
@@ -14,6 +18,7 @@ impl Hanoi {
                 Vec::with_capacity(disks as usize),
                 Vec::with_capacity(disks as usize),
             ],
+            disks_amount: disks,
         }
     }
 
@@ -26,6 +31,7 @@ impl Hanoi {
                 }
             }
             self.rods[to].push(disk);
+            println!("{}", self);
             Ok(())
         } else {
             Err(format!("No disk to move from tower {from}"))
@@ -61,8 +67,55 @@ impl Hanoi {
 
 impl HanoiSolver for Hanoi {
     fn solve(&mut self) -> Result<(), String> {
-        let disks = self.rods[0].len() as u32;
+        let disks = self.disks_amount;
         self.solve_recursive(disks, 0, 2, 1)
+    }
+}
+
+impl fmt::Display for Hanoi {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut format = String::new();
+        // Update this string to dynamic add - between every from the disk value
+        format.push_str(&format!(
+            "\n{0}|{0}\t{0}|{0}\t{0}|{0}\n",
+            " ".repeat((self.disks_amount + 1) as usize)
+        ));
+
+        for i in (0..self.disks_amount as usize).rev() {
+            format.push_str(&format!(
+                "{}\t{}\t{}\n",
+                self.rods[0].get(i).map_or(
+                    format!("{0}|{0}", " ".repeat((self.disks_amount + 1) as usize)),
+                    |&disk| format!(
+                        "{1}[{0}]{1}",
+                        "=".repeat(((disk * 2) + 1) as usize),
+                        " ".repeat((self.disks_amount - disk) as usize)
+                    )
+                ),
+                self.rods[1].get(i).map_or(
+                    format!("{0}|{0}", " ".repeat((self.disks_amount + 1) as usize)),
+                    |&disk| format!(
+                        "{1}[{0}]{1}",
+                        "=".repeat(((disk * 2) + 1) as usize),
+                        " ".repeat((self.disks_amount - disk) as usize)
+                    )
+                ),
+                self.rods[2].get(i).map_or(
+                    format!("{0}|{0}", " ".repeat((self.disks_amount + 1) as usize)),
+                    |&disk| format!(
+                        "{1}[{0}]{1}",
+                        "=".repeat(((disk * 2) + 1) as usize),
+                        " ".repeat((self.disks_amount - disk) as usize)
+                    ),
+                )
+            ));
+        }
+
+        format.push_str(&format!(
+            "{0}+{0}\t{0}+{0}\t{0}+{0}",
+            "-".repeat((self.disks_amount + 1) as usize)
+        ));
+        write!(f, "{}", format)
     }
 }
 
@@ -183,5 +236,31 @@ mod tests {
         assert_eq!(&vec![] as &Vec<u32>, hanoi.rods.first().unwrap());
         assert_eq!(&vec![] as &Vec<u32>, hanoi.rods.get(1).unwrap());
         assert_eq!(&vec![4, 3, 2, 1, 0], hanoi.rods.last().unwrap());
+    }
+
+    #[test]
+    fn should_display_raw_hanoi_towers_with_3_disks() {
+        // GIVEN a hanoi towers
+        let hanoi = Hanoi::new(3);
+
+        // WHEN we display the hanoi towers
+        let display = format!("{}", hanoi);
+
+        // THEN the hanoi towers should be displayed as
+        println!("{}", hanoi);
+        assert_eq!("\n    |    \t    |    \t    |    \n   [=]   \t    |    \t    |    \n  [===]  \t    |    \t    |    \n [=====] \t    |    \t    |    \n----+----\t----+----\t----+----", display);
+    }
+
+    #[test]
+    fn should_display_raw_hanoi_towers_with_five_disks() {
+        // GIVEN a hanoi towers
+        let hanoi = Hanoi::new(5);
+
+        // WHEN we display the hanoi towers
+        let display = format!("{}", hanoi);
+
+        // THEN the hanoi towers should be displayed as
+        println!("{}", hanoi);
+        assert_eq!("\n      |      \t      |      \t      |      \n     [=]     \t      |      \t      |      \n    [===]    \t      |      \t      |      \n   [=====]   \t      |      \t      |      \n  [=======]  \t      |      \t      |      \n [=========] \t      |      \t      |      \n------+------\t------+------\t------+------", display);
     }
 }
