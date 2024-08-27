@@ -67,6 +67,7 @@ impl Hanoi {
 
 impl HanoiSolver for Hanoi {
     fn solve(&mut self) -> Result<(), String> {
+        println!("{}", self);
         let disks = self.disks_amount;
         self.solve_recursive(disks, 0, 2, 1)
     }
