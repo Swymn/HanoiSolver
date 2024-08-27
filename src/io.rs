@@ -32,21 +32,20 @@ pub fn get_disk_amount<R: io::BufRead>(args: &[String], reader: &mut R) -> u32 {
     match disk_amount {
         Ok(Some(amount)) => amount,
         _ => {
-			println!("Please enter the amount of disks:");
-			loop {
-				
-				let disk_amount = get_disk_amount_from_user_input(reader);
+            println!("Please enter the amount of disks:");
+            loop {
+                let disk_amount = get_disk_amount_from_user_input(reader);
 
-				match disk_amount {
-					Ok(Some(amount)) => {
-						return amount;
-					}
-					_ => {
-						println!("Invalid disk amount. Please enter a valid number:");
-					}
-				}
-			}
-        },
+                match disk_amount {
+                    Ok(Some(amount)) => {
+                        return amount;
+                    }
+                    _ => {
+                        println!("Invalid disk amount. Please enter a valid number:");
+                    }
+                }
+            }
+        }
     }
 }
 
